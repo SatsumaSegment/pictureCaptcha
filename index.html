@@ -193,6 +193,30 @@
         </div>
     </div>
 
+    <!-- Final Stage: Congratulations -->
+    <div id="final-stage" class="hidden bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md fade-in">
+        <div class="bg-green-600 p-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fas fa-check-circle mr-3"></i>
+                Authentication Complete
+            </h1>
+            <p class="mt-2 text-green-100">All security checks passed successfully</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="text-center mb-6">
+                <i class="fas fa-unlock-alt text-green-500 text-6xl mb-4"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Congratulations!</h2>
+                <p class="text-lg text-gray-600 mt-2">You have successfully passed all authentication steps.</p>
+                <p class="text-md text-gray-500 mt-4">If you're seeing this message, it means the application has successfully solved your login authentication system.</p>
+            </div>
+            
+            <button id="restart-btn" class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition mt-4">
+                Start Over
+            </button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Stage 1: Login Elements
@@ -218,30 +242,34 @@
             const progressBar = document.getElementById('progress-bar');
             const successMessage = document.getElementById('success-message');
             const errorMessage = document.getElementById('error-message');
+
+            // Final Stage: Congratulations
+            const finalStage = document.getElementById('final-stage');
+            const restartBtn = document.getElementById('restart-btn');
             
             // Correct credentials and MFA code
             const CORRECT_EMAIL = "g@g.com";
             const CORRECT_PASSWORD = "pass123";
             const CORRECT_MFA_CODE = "7792";
             
-            // Available categories and their images
-            const categories = {
-                'bicycles': [
-                    'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500',
-                    'https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=500',
-                    'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=500'
-                ]
-            };
-            
-            // Distractor images (not matching any category)
-            const distractors = [
-                'https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?w=500',
-                'https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?w=500',
-                'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=500',
-                'https://images.unsplash.com/photo-1544568100-847a948585b9?w=500',
-                'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500',
-                'https://images.unsplash.com/photo-1511044568932-338cba0ad803?w=500'
-            ];
+        // Available categories and their images
+        const categories = {
+            'bicycles': [
+                'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500',
+                'https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=500',
+                'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=500'
+            ]
+        };
+        
+        // Distractor images (not matching any category)
+        const distractors = [
+            'https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?w=500',
+            'https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?w=500',
+            'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=500',
+            'https://images.unsplash.com/photo-1544568100-847a948585b9?w=500',
+            'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500',
+            'https://images.unsplash.com/photo-1511044568932-338cba0ad803?w=500'
+        ];
             
             // Captcha state
             let currentCategory = 'bicycles';
@@ -251,6 +279,9 @@
             
             // MFA code state
             let mfaCode = ['', '', '', ''];
+            
+            // Hide final stage on load
+            finalStage.style.display = 'none';
             
             // Login form submission
             loginForm.addEventListener('submit', function(e) {
@@ -277,8 +308,8 @@
                 }
             });
             
-            // MFA digit input handling
-            mfaDigits.forEach((digit, index) => {
+  // MFA digit input handling
+  mfaDigits.forEach((digit, index) => {
                 digit.addEventListener('input', function() {
                     const value = this.value;
                     
@@ -336,58 +367,57 @@
                 }
             });
             
-            // Initialize the captcha
             function initCaptcha() {
-                // Reset state
-                selectedImages = [];
-                verifyBtn.disabled = true;
-                successMessage.classList.add('hidden');
-                errorMessage.classList.add('hidden');
-                
-                // Set the category to bicycles
-                currentCategory = 'bicycles';
-                targetObject.textContent = currentCategory;
-                
-                // Get correct images for this category
-                correctImages = [...categories[currentCategory]];
-                
-                // Create an array with all images (correct + distractors)
-                let allImages = [...correctImages];
-                
-                // Add random distractors until we have 9 images
-                while (allImages.length < 9) {
-                    const randomDistractor = distractors[Math.floor(Math.random() * distractors.length)];
-                    if (!allImages.includes(randomDistractor)) {
-                        allImages.push(randomDistractor);
-                    }
+            // Reset state
+            selectedImages = [];
+            verifyBtn.disabled = true;
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            
+            // Set the category to bicycles
+            currentCategory = 'bicycles';
+            targetObject.textContent = currentCategory;
+            
+            // Get correct images for this category
+            correctImages = [...categories[currentCategory]];
+            
+            // Create an array with all images (correct + distractors)
+            let allImages = [...correctImages];
+            
+            // Add random distractors until we have 9 images
+            while (allImages.length < 9) {
+                const randomDistractor = distractors[Math.floor(Math.random() * distractors.length)];
+                if (!allImages.includes(randomDistractor)) {
+                    allImages.push(randomDistractor);
                 }
+            }
+            
+            // Shuffle the images
+            allImages = shuffleArray(allImages);
+            
+            // Clear the grid
+            captchaGrid.innerHTML = '';
+            
+            // Create image elements
+            allImages.forEach((imageUrl, index) => {
+                const isCorrect = correctImages.includes(imageUrl);
                 
-                // Shuffle the images
-                allImages = shuffleArray(allImages);
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'captcha-image aspect-square rounded-lg cursor-pointer bg-gray-200';
+                imgDiv.style.backgroundImage = `url(${imageUrl})`;
+                imgDiv.dataset.index = index;
+                imgDiv.dataset.correct = isCorrect;
                 
-                // Clear the grid
-                captchaGrid.innerHTML = '';
-                
-                // Create image elements
-                allImages.forEach((imageUrl, index) => {
-                    const isCorrect = correctImages.includes(imageUrl);
-                    
-                    const imgDiv = document.createElement('div');
-                    imgDiv.className = 'captcha-image aspect-square rounded-lg cursor-pointer bg-gray-200';
-                    imgDiv.style.backgroundImage = `url(${imageUrl})`;
-                    imgDiv.dataset.index = index;
-                    imgDiv.dataset.correct = isCorrect;
-                    
-                    imgDiv.addEventListener('click', function() {
-                        handleImageClick(this);
-                    });
-                    
-                    captchaGrid.appendChild(imgDiv);
+                imgDiv.addEventListener('click', function() {
+                    handleImageClick(this);
                 });
                 
-                // Reset progress
-                updateProgress(0);
-            }
+                captchaGrid.appendChild(imgDiv);
+            });
+            
+            // Reset progress
+            updateProgress(0);
+        }
             
             // Handle image click
             function handleImageClick(imgElement) {
@@ -414,6 +444,15 @@
             // Update progress bar
             function updateProgress(percent) {
                 progressBar.style.width = `${percent}%`;
+            }
+            
+            // Move to final stage
+            function goToFinalStage() {
+                captchaStage.classList.remove('fade-in');
+                captchaStage.classList.add('hidden');
+                finalStage.classList.remove('hidden');
+                finalStage.classList.add('fade-in');
+                finalStage.style.display = 'block';
             }
             
             // Verify the selection
@@ -456,6 +495,9 @@
                     images.forEach(imgElement => {
                         imgElement.style.pointerEvents = 'none';
                     });
+                    
+                    // Navigate to final stage after a delay
+                    setTimeout(goToFinalStage, 1500);
                 } else {
                     // Failure
                     errorMessage.classList.remove('hidden');
@@ -481,6 +523,30 @@
             verifyBtn.addEventListener('click', verifyCaptcha);
             refreshBtn.addEventListener('click', initCaptcha);
             skipBtn.addEventListener('click', initCaptcha);
+            
+            // Event listener for restart button
+            restartBtn.addEventListener('click', function() {
+                // Reset all inputs
+                emailInput.value = '';
+                passwordInput.value = '';
+                mfaDigits.forEach(digit => digit.value = '');
+                mfaCode = ['', '', '', ''];
+                
+                // Hide all stages except login
+                finalStage.classList.add('hidden');
+                finalStage.classList.remove('fade-in');
+                captchaStage.classList.add('hidden');
+                captchaStage.classList.remove('fade-in');
+                mfaStage.classList.add('hidden');
+                mfaStage.classList.remove('fade-in');
+                
+                // Show login stage
+                loginStage.classList.remove('hidden');
+                loginStage.classList.add('fade-in');
+                
+                // Reset captcha attempts
+                attempts = 0;
+            });
         });
     </script>
 </body>
