@@ -3,10 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Picture Clicking Captcha</title>
+    <title>Secure Authentication Flow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
         .captcha-image {
             background-size: cover;
             background-position: center;
@@ -38,10 +53,89 @@
         .progress-bar {
             transition: width 0.3s ease;
         }
+        .mfa-digit {
+            transition: all 0.2s ease;
+        }
+        .mfa-digit:focus {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md">
+    <!-- Stage 1: Login Page -->
+    <div id="login-stage" class="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md fade-in">
+        <div class="bg-blue-600 p-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fas fa-lock mr-3"></i>
+                Secure Login
+            </h1>
+            <p class="mt-2 text-blue-100">Please enter your credentials</p>
+        </div>
+        
+        <div class="p-6">
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition">
+                    Sign In
+                </button>
+            </form>
+            
+            <div id="login-error" class="hidden mt-4 p-3 bg-red-50 text-red-800 rounded-lg border border-red-200">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span>Invalid credentials. Please try again.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stage 2: MFA Page -->
+    <div id="mfa-stage" class="hidden bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md">
+        <div class="bg-blue-600 p-6 text-white">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fas fa-mobile-alt mr-3"></i>
+                Two-Factor Authentication
+            </h1>
+            <p class="mt-2 text-blue-100">Enter the 4-digit code sent to your device</p>
+        </div>
+        
+        <div class="p-6">
+            <div class="flex justify-center space-x-3 mb-8">
+                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="0">
+                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="1">
+                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="2">
+                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="3">
+            </div>
+            
+            <button id="verify-mfa-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Verify Code
+            </button>
+            
+            <div id="mfa-error" class="hidden mt-4 p-3 bg-red-50 text-red-800 rounded-lg border border-red-200">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span>Incorrect code. Please try again.</span>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center text-sm text-gray-600">
+                <p>Didn't receive a code? <a href="#" class="text-blue-600 hover:underline">Resend code</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stage 3: Captcha Page -->
+    <div id="captcha-stage" class="hidden bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md">
         <div class="bg-blue-600 p-6 text-white">
             <h1 class="text-2xl font-bold flex items-center">
                 <i class="fas fa-shield-alt mr-3"></i>
@@ -90,7 +184,7 @@
         
         <div id="error-message" class="hidden p-6 bg-red-50 text-red-800 border-t border-red-200">
             <div class="flex items-center">
-                <i class="fas fa-exclamation-circle text-2xl mr-3"></i>
+                <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
                 <div>
                     <h3 class="font-bold">Verification Failed</h3>
                     <p class="text-sm">Please try again or skip to another challenge.</p>
@@ -101,32 +195,41 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Stage 1: Login Elements
+            const loginStage = document.getElementById('login-stage');
+            const loginForm = document.getElementById('login-form');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const loginError = document.getElementById('login-error');
+            
+            // Stage 2: MFA Elements
+            const mfaStage = document.getElementById('mfa-stage');
+            const mfaDigits = document.querySelectorAll('.mfa-digit');
+            const verifyMfaBtn = document.getElementById('verify-mfa-btn');
+            const mfaError = document.getElementById('mfa-error');
+            
+            // Stage 3: Captcha Elements
+            const captchaStage = document.getElementById('captcha-stage');
+            const captchaGrid = document.getElementById('captcha-grid');
+            const targetObject = document.getElementById('target-object');
+            const verifyBtn = document.getElementById('verify-btn');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const skipBtn = document.getElementById('skip-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Correct credentials and MFA code
+            const CORRECT_EMAIL = "g@g.com";
+            const CORRECT_PASSWORD = "pass123";
+            const CORRECT_MFA_CODE = "7792";
+            
             // Available categories and their images
             const categories = {
                 'bicycles': [
                     'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500',
                     'https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=500',
                     'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=500'
-                ],
-                'traffic lights': [
-                    'https://images.unsplash.com/photo-1601758003122-53c40e686a19?w=500',
-                    'https://images.unsplash.com/photo-1583953623787-8f5dc1aacb05?w=500',
-                    'https://images.unsplash.com/photo-1554734765-4a2d4a3b9c40?w=500'
-                ],
-                'mountains': [
-                    'https://images.unsplash.com/photo-1464278533981-50106e6176b1?w=500',
-                    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500',
-                    'https://images.unsplash.com/photo-1464823063530-08f10ed1a2dd?w=500'
-                ],
-                'boats': [
-                    'https://images.unsplash.com/photo-1504626835342-6b01071d1824?w=500',
-                    'https://images.unsplash.com/photo-1501700493788-fa1a4fc9fe62?w=500',
-                    'https://images.unsplash.com/photo-1502136969935-8d8b8928a76b?w=500'
-                ],
-                'bridges': [
-                    'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=500',
-                    'https://images.unsplash.com/photo-1500051638674-ff996a0ec59e?w=500',
-                    'https://images.unsplash.com/photo-1496564203457-11a120427b95?w=500'
                 ]
             };
             
@@ -140,19 +243,98 @@
                 'https://images.unsplash.com/photo-1511044568932-338cba0ad803?w=500'
             ];
             
-            let currentCategory = '';
+            // Captcha state
+            let currentCategory = 'bicycles';
             let correctImages = [];
             let selectedImages = [];
             let attempts = 0;
             
-            const captchaGrid = document.getElementById('captcha-grid');
-            const targetObject = document.getElementById('target-object');
-            const verifyBtn = document.getElementById('verify-btn');
-            const refreshBtn = document.getElementById('refresh-btn');
-            const skipBtn = document.getElementById('skip-btn');
-            const progressBar = document.getElementById('progress-bar');
-            const successMessage = document.getElementById('success-message');
-            const errorMessage = document.getElementById('error-message');
+            // MFA code state
+            let mfaCode = ['', '', '', ''];
+            
+            // Login form submission
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                
+                if (email === CORRECT_EMAIL && password === CORRECT_PASSWORD) {
+                    // Successful login
+                    loginError.classList.add('hidden');
+                    loginStage.classList.remove('fade-in');
+                    loginStage.classList.add('hidden');
+                    mfaStage.classList.remove('hidden');
+                    mfaStage.classList.add('fade-in');
+                    
+                    // Focus first MFA digit
+                    mfaDigits[0].focus();
+                } else {
+                    // Failed login
+                    loginError.classList.remove('hidden');
+                    loginForm.classList.add('shake');
+                    setTimeout(() => loginForm.classList.remove('shake'), 500);
+                }
+            });
+            
+            // MFA digit input handling
+            mfaDigits.forEach((digit, index) => {
+                digit.addEventListener('input', function() {
+                    const value = this.value;
+                    
+                    // Only allow digits
+                    if (!/^\d*$/.test(value)) {
+                        this.value = '';
+                        return;
+                    }
+                    
+                    // Update MFA code
+                    mfaCode[index] = value;
+                    
+                    // Auto-focus next digit
+                    if (value.length === 1 && index < mfaDigits.length - 1) {
+                        mfaDigits[index + 1].focus();
+                    }
+                    
+                    // Enable verify button if all digits are filled
+                    verifyMfaBtn.disabled = mfaCode.join('').length !== 4;
+                });
+                
+                // Handle backspace
+                digit.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                        mfaDigits[index - 1].focus();
+                    }
+                });
+            });
+            
+            // Verify MFA code
+            verifyMfaBtn.addEventListener('click', function() {
+                const enteredCode = mfaCode.join('');
+                
+                if (enteredCode === CORRECT_MFA_CODE) {
+                    // Correct code
+                    mfaError.classList.add('hidden');
+                    mfaStage.classList.remove('fade-in');
+                    mfaStage.classList.add('hidden');
+                    captchaStage.classList.remove('hidden');
+                    captchaStage.classList.add('fade-in');
+                    
+                    // Initialize captcha
+                    initCaptcha();
+                } else {
+                    // Incorrect code
+                    mfaError.classList.remove('hidden');
+                    mfaStage.classList.add('shake');
+                    setTimeout(() => mfaStage.classList.remove('shake'), 500);
+                    
+                    // Clear all digits
+                    mfaDigits.forEach(digit => digit.value = '');
+                    mfaCode = ['', '', '', ''];
+                    verifyMfaBtn.disabled = true;
+                    mfaDigits[0].focus();
+                }
+            });
             
             // Initialize the captcha
             function initCaptcha() {
@@ -162,9 +344,8 @@
                 successMessage.classList.add('hidden');
                 errorMessage.classList.add('hidden');
                 
-                // Select a random category
-                const categoryKeys = Object.keys(categories);
-                currentCategory = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+                // Set the category to bicycles
+                currentCategory = 'bicycles';
                 targetObject.textContent = currentCategory;
                 
                 // Get correct images for this category
@@ -296,13 +477,10 @@
                 return newArray;
             }
             
-            // Event listeners
+            // Event listeners for captcha
             verifyBtn.addEventListener('click', verifyCaptcha);
             refreshBtn.addEventListener('click', initCaptcha);
             skipBtn.addEventListener('click', initCaptcha);
-            
-            // Initialize the first captcha
-            initCaptcha();
         });
     </script>
 </body>
