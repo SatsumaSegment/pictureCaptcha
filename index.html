@@ -3,550 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Authentication Flow</title>
+    <title>Orientation Captcha Puzzle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
+        .image-container {
+            perspective: 1000px;
+            transition: all 0.3s ease;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .image-container:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .image-container.selected {
+            border: 3px solid #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        .image-container.correct {
+            border: 3px solid #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+        }
+        .image-container.incorrect {
+            border: 3px solid #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+        }
+        .rotate-90 {
+            transform: rotate(90deg);
+        }
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        .rotate-270 {
+            transform: rotate(270deg);
         }
         .shake {
             animation: shake 0.5s;
         }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
-        .captcha-image {
-            background-size: cover;
-            background-position: center;
-            transition: all 0.3s ease;
-        }
-        .captcha-image:hover {
-            transform: scale(1.03);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .captcha-image.selected {
-            border: 4px solid #3B82F6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
-        }
-        .captcha-image.correct {
-            border: 4px solid #10B981;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.5);
-        }
-        .captcha-image.incorrect {
-            border: 4px solid #EF4444;
-            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.5);
-        }
-        .refresh-btn:hover {
-            animation: spin 0.5s linear;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .progress-bar {
-            transition: width 0.3s ease;
-        }
-        .mfa-digit {
-            transition: all 0.2s ease;
-        }
-        .mfa-digit:focus {
-            transform: scale(1.1);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <!-- Stage 1: Login Page -->
-    <div id="login-stage" class="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md fade-in">
-        <div class="bg-blue-600 p-6 text-white">
-            <h1 class="text-2xl font-bold flex items-center">
-                <i class="fas fa-lock mr-3"></i>
-                Secure Login
-            </h1>
-            <p class="mt-2 text-blue-100">Please enter your credentials</p>
-        </div>
-        
-        <div class="p-6">
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
-                    <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="your@email.com" required>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Verify you're human</h1>
+            <p class="text-gray-600">Click on the image that's the right way up</p>
+            <div class="flex items-center justify-center mt-4">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                    <i class="fas fa-shield-alt text-blue-500"></i>
                 </div>
-                
-                <div class="mb-6">
-                    <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
-                    <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="••••••••" required>
-                </div>
-                
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition">
-                    Sign In
-                </button>
-            </form>
-            
-            <div id="login-error" class="hidden mt-4 p-3 bg-red-50 text-red-800 rounded-lg border border-red-200">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-circle mr-2"></i>
-                    <span>Invalid credentials. Please try again.</span>
-                </div>
+                <span class="text-sm text-gray-500">Security check by CaptchaPuzzle</span>
             </div>
         </div>
-    </div>
-    
-    <!-- Stage 2: MFA Page -->
-    <div id="mfa-stage" class="hidden bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md">
-        <div class="bg-blue-600 p-6 text-white">
-            <h1 class="text-2xl font-bold flex items-center">
-                <i class="fas fa-mobile-alt mr-3"></i>
-                Two-Factor Authentication
-            </h1>
-            <p class="mt-2 text-blue-100">Enter the 4-digit code sent to your device</p>
+
+        <div class="grid grid-cols-2 gap-4 mb-6" id="imageGrid">
+            <!-- Images will be inserted here by JavaScript -->
         </div>
-        
-        <div class="p-6">
-            <div class="flex justify-center space-x-3 mb-8">
-                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="0">
-                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="1">
-                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="2">
-                <input type="text" maxlength="1" class="mfa-digit w-14 h-14 text-2xl text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" data-index="3">
-            </div>
-            
-            <button id="verify-mfa-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                Verify Code
+
+        <div class="flex items-center justify-between mb-4">
+            <button id="refreshBtn" class="text-blue-500 hover:text-blue-700 flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i> Refresh images
             </button>
-            
-            <div id="mfa-error" class="hidden mt-4 p-3 bg-red-50 text-red-800 rounded-lg border border-red-200">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-circle mr-2"></i>
-                    <span>Incorrect code. Please try again.</span>
-                </div>
-            </div>
-            
-            <div class="mt-4 text-center text-sm text-gray-600">
-                <p>Didn't receive a code? <a href="#" class="text-blue-600 hover:underline">Resend code</a></p>
+            <div id="timer" class="text-sm text-gray-500">
+                <i class="fas fa-clock mr-1"></i> <span id="time">30</span>s
             </div>
         </div>
-    </div>
-    
-    <!-- Stage 3: Captcha Page -->
-    <div id="captcha-stage" class="hidden bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md">
-        <div class="bg-blue-600 p-6 text-white">
-            <h1 class="text-2xl font-bold flex items-center">
-                <i class="fas fa-shield-alt mr-3"></i>
-                Security Verification
-            </h1>
-            <p class="mt-2 text-blue-100">Select all images that match the description</p>
-        </div>
-        
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-6">
-                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-medium">
-                    <span id="captcha-instruction">Click on all <span class="font-bold" id="target-object">bicycles</span></span>
-                </div>
-                <button id="refresh-btn" class="refresh-btn bg-gray-200 hover:bg-gray-300 text-gray-700 p-2 rounded-full">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-3 gap-3 mb-6" id="captcha-grid">
-                <!-- Images will be inserted here by JavaScript -->
-            </div>
-            
-            <div class="bg-gray-200 rounded-full h-2 mb-6">
-                <div id="progress-bar" class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
-            </div>
-            
-            <div class="flex justify-between">
-                <button id="verify-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition" disabled>
-                    Verify
-                </button>
-                <button id="skip-btn" class="text-gray-600 hover:text-gray-800 px-6 py-3 rounded-lg font-medium transition">
-                    Skip
-                </button>
-            </div>
-        </div>
-        
-        <div id="success-message" class="hidden p-6 bg-green-50 text-green-800 border-t border-green-200">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle text-2xl mr-3"></i>
-                <div>
-                    <h3 class="font-bold">Verification Complete!</h3>
-                    <p class="text-sm">You've successfully verified you're not a robot.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div id="error-message" class="hidden p-6 bg-red-50 text-red-800 border-t border-red-200">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
-                <div>
-                    <h3 class="font-bold">Verification Failed</h3>
-                    <p class="text-sm">Please try again or skip to another challenge.</p>
-                </div>
-            </div>
-        </div>
+
+        <div id="feedback" class="hidden mb-4 p-4 rounded-lg"></div>
+
+        <button id="verifyBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition duration-200 flex items-center justify-center">
+            <i class="fas fa-check-circle mr-2"></i> Verify
+        </button>
     </div>
 
-    <!-- Final Stage: Congratulations -->
-    <div id="final-stage" class="hidden bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md fade-in">
-        <div class="bg-green-600 p-6 text-white">
-            <h1 class="text-2xl font-bold flex items-center">
-                <i class="fas fa-check-circle mr-3"></i>
-                Authentication Complete
-            </h1>
-            <p class="mt-2 text-green-100">All security checks passed successfully</p>
-        </div>
-        
-        <div class="p-6">
-            <div class="text-center mb-6">
-                <i class="fas fa-unlock-alt text-green-500 text-6xl mb-4"></i>
-                <h2 class="text-2xl font-bold text-gray-800">Congratulations!</h2>
-                <p class="text-lg text-gray-600 mt-2">You have successfully passed all authentication steps.</p>
-                <p class="text-md text-gray-500 mt-4">If you're seeing this message, it means the application has successfully solved your login authentication system.</p>
-            </div>
-            
-            <button id="restart-btn" class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition mt-4">
-                Start Over
-            </button>
-        </div>
-    </div>
+    <div id="confettiContainer" class="fixed top-0 left-0 w-full h-full pointer-events-none"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Stage 1: Login Elements
-            const loginStage = document.getElementById('login-stage');
-            const loginForm = document.getElementById('login-form');
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const loginError = document.getElementById('login-error');
-            
-            // Stage 2: MFA Elements
-            const mfaStage = document.getElementById('mfa-stage');
-            const mfaDigits = document.querySelectorAll('.mfa-digit');
-            const verifyMfaBtn = document.getElementById('verify-mfa-btn');
-            const mfaError = document.getElementById('mfa-error');
-            
-            // Stage 3: Captcha Elements
-            const captchaStage = document.getElementById('captcha-stage');
-            const captchaGrid = document.getElementById('captcha-grid');
-            const targetObject = document.getElementById('target-object');
-            const verifyBtn = document.getElementById('verify-btn');
-            const refreshBtn = document.getElementById('refresh-btn');
-            const skipBtn = document.getElementById('skip-btn');
-            const progressBar = document.getElementById('progress-bar');
-            const successMessage = document.getElementById('success-message');
-            const errorMessage = document.getElementById('error-message');
+            // Sample image URLs (in a real app, these would be fetched from a server)
+            const imageUrls = [
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+                'https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5',
+                'https://images.unsplash.com/photo-1433086966358-54859d0ed716',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05',
+                'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d',
+                'https://images.unsplash.com/photo-1472214103451-9374bd1c798e'
+            ];
 
-            // Final Stage: Congratulations
-            const finalStage = document.getElementById('final-stage');
-            const restartBtn = document.getElementById('restart-btn');
-            
-            // Correct credentials and MFA code
-            const CORRECT_EMAIL = "g@g.com";
-            const CORRECT_PASSWORD = "pass123";
-            const CORRECT_MFA_CODE = "7792";
-            
-        // Available categories and their images
-        const categories = {
-            'bicycles': [
-                'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500',
-                'https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=500',
-                'https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=500'
-            ]
-        };
-        
-        // Distractor images (not matching any category)
-        const distractors = [
-            'https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?w=500',
-            'https://images.unsplash.com/photo-1541410965313-d53b3c16ef17?w=500',
-            'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=500',
-            'https://images.unsplash.com/photo-1544568100-847a948585b9?w=500',
-            'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500',
-            'https://images.unsplash.com/photo-1511044568932-338cba0ad803?w=500'
-        ];
-            
-            // Captcha state
-            let currentCategory = 'bicycles';
-            let correctImages = [];
-            let selectedImages = [];
+            const imageGrid = document.getElementById('imageGrid');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const feedbackDiv = document.getElementById('feedback');
+            const timerElement = document.getElementById('time');
+            const confettiContainer = document.getElementById('confettiContainer');
+
+            let selectedImageIndex = -1;
+            let correctImageIndex = -1;
+            let timeLeft = 30;
+            let timer;
             let attempts = 0;
-            
-            // MFA code state
-            let mfaCode = ['', '', '', ''];
-            
-            // Hide final stage on load
-            finalStage.style.display = 'none';
-            
-            // Login form submission
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const email = emailInput.value.trim();
-                const password = passwordInput.value;
-                
-                if (email === CORRECT_EMAIL && password === CORRECT_PASSWORD) {
-                    // Successful login
-                    loginError.classList.add('hidden');
-                    loginStage.classList.remove('fade-in');
-                    loginStage.classList.add('hidden');
-                    mfaStage.classList.remove('hidden');
-                    mfaStage.classList.add('fade-in');
-                    
-                    // Focus first MFA digit
-                    mfaDigits[0].focus();
-                } else {
-                    // Failed login
-                    loginError.classList.remove('hidden');
-                    loginForm.classList.add('shake');
-                    setTimeout(() => loginForm.classList.remove('shake'), 500);
-                }
+
+            // Initialize the captcha
+            initCaptcha();
+
+            // Refresh button click handler
+            refreshBtn.addEventListener('click', function() {
+                resetCaptcha();
             });
-            
-  // MFA digit input handling
-  mfaDigits.forEach((digit, index) => {
-                digit.addEventListener('input', function() {
-                    const value = this.value;
-                    
-                    // Only allow digits
-                    if (!/^\d*$/.test(value)) {
-                        this.value = '';
-                        return;
-                    }
-                    
-                    // Update MFA code
-                    mfaCode[index] = value;
-                    
-                    // Auto-focus next digit
-                    if (value.length === 1 && index < mfaDigits.length - 1) {
-                        mfaDigits[index + 1].focus();
-                    }
-                    
-                    // Enable verify button if all digits are filled
-                    verifyMfaBtn.disabled = mfaCode.join('').length !== 4;
-                });
-                
-                // Handle backspace
-                digit.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
-                        mfaDigits[index - 1].focus();
-                    }
-                });
+
+            // Verify button click handler
+            verifyBtn.addEventListener('click', function() {
+                verifySelection();
             });
-            
-            // Verify MFA code
-            verifyMfaBtn.addEventListener('click', function() {
-                const enteredCode = mfaCode.join('');
-                
-                if (enteredCode === CORRECT_MFA_CODE) {
-                    // Correct code
-                    mfaError.classList.add('hidden');
-                    mfaStage.classList.remove('fade-in');
-                    mfaStage.classList.add('hidden');
-                    captchaStage.classList.remove('hidden');
-                    captchaStage.classList.add('fade-in');
-                    
-                    // Initialize captcha
-                    initCaptcha();
-                } else {
-                    // Incorrect code
-                    mfaError.classList.remove('hidden');
-                    mfaStage.classList.add('shake');
-                    setTimeout(() => mfaStage.classList.remove('shake'), 500);
-                    
-                    // Clear all digits
-                    mfaDigits.forEach(digit => digit.value = '');
-                    mfaCode = ['', '', '', ''];
-                    verifyMfaBtn.disabled = true;
-                    mfaDigits[0].focus();
-                }
-            });
-            
+
             function initCaptcha() {
-            // Reset state
-            selectedImages = [];
-            verifyBtn.disabled = true;
-            successMessage.classList.add('hidden');
-            errorMessage.classList.add('hidden');
-            
-            // Set the category to bicycles
-            currentCategory = 'bicycles';
-            targetObject.textContent = currentCategory;
-            
-            // Get correct images for this category
-            correctImages = [...categories[currentCategory]];
-            
-            // Create an array with all images (correct + distractors)
-            let allImages = [...correctImages];
-            
-            // Add random distractors until we have 9 images
-            while (allImages.length < 9) {
-                const randomDistractor = distractors[Math.floor(Math.random() * distractors.length)];
-                if (!allImages.includes(randomDistractor)) {
-                    allImages.push(randomDistractor);
-                }
-            }
-            
-            // Shuffle the images
-            allImages = shuffleArray(allImages);
-            
-            // Clear the grid
-            captchaGrid.innerHTML = '';
-            
-            // Create image elements
-            allImages.forEach((imageUrl, index) => {
-                const isCorrect = correctImages.includes(imageUrl);
+                // Clear previous images
+                imageGrid.innerHTML = '';
+                selectedImageIndex = -1;
+                feedbackDiv.classList.add('hidden');
                 
-                const imgDiv = document.createElement('div');
-                imgDiv.className = 'captcha-image aspect-square rounded-lg cursor-pointer bg-gray-200';
-                imgDiv.style.backgroundImage = `url(${imageUrl})`;
-                imgDiv.dataset.index = index;
-                imgDiv.dataset.correct = isCorrect;
+                // Reset timer
+                clearInterval(timer);
+                timeLeft = 30;
+                timerElement.textContent = timeLeft;
+                startTimer();
+
+                // Shuffle images and select 4 random ones
+                const shuffledImages = [...imageUrls].sort(() => 0.5 - Math.random()).slice(0, 4);
                 
-                imgDiv.addEventListener('click', function() {
-                    handleImageClick(this);
-                });
+                // Determine which image will be correct (right side up)
+                correctImageIndex = Math.floor(Math.random() * 4);
                 
-                captchaGrid.appendChild(imgDiv);
-            });
-            
-            // Reset progress
-            updateProgress(0);
-        }
-            
-            // Handle image click
-            function handleImageClick(imgElement) {
-                const index = imgElement.dataset.index;
-                const isCorrect = imgElement.dataset.correct === 'true';
-                
-                if (imgElement.classList.contains('selected')) {
-                    // Deselect
-                    imgElement.classList.remove('selected');
-                    selectedImages = selectedImages.filter(imgIdx => imgIdx != index);
-                } else {
-                    // Select
-                    imgElement.classList.add('selected');
-                    selectedImages.push(index);
-                }
-                
-                // Enable verify button if at least one image is selected
-                verifyBtn.disabled = selectedImages.length === 0;
-                
-                // Update progress
-                updateProgress(selectedImages.length / correctImages.length * 100);
-            }
-            
-            // Update progress bar
-            function updateProgress(percent) {
-                progressBar.style.width = `${percent}%`;
-            }
-            
-            // Move to final stage
-            function goToFinalStage() {
-                captchaStage.classList.remove('fade-in');
-                captchaStage.classList.add('hidden');
-                finalStage.classList.remove('hidden');
-                finalStage.classList.add('fade-in');
-                finalStage.style.display = 'block';
-            }
-            
-            // Verify the selection
-            function verifyCaptcha() {
-                attempts++;
-                
-                // Get all image elements
-                const images = captchaGrid.querySelectorAll('.captcha-image');
-                let correctSelections = 0;
-                let incorrectSelections = 0;
-                
-                // Check each selected image
-                selectedImages.forEach(imgIdx => {
-                    const imgElement = images[imgIdx];
-                    if (imgElement.dataset.correct === 'true') {
-                        correctSelections++;
-                        imgElement.classList.remove('selected');
-                        imgElement.classList.add('correct');
-                    } else {
-                        incorrectSelections++;
-                        imgElement.classList.remove('selected');
-                        imgElement.classList.add('incorrect');
-                    }
-                });
-                
-                // Mark correct images that weren't selected
-                images.forEach(imgElement => {
-                    if (imgElement.dataset.correct === 'true' && !imgElement.classList.contains('correct') && !imgElement.classList.contains('incorrect')) {
-                        imgElement.classList.add('correct');
-                    }
-                });
-                
-                // Check if verification was successful
-                if (correctSelections === correctImages.length && incorrectSelections === 0) {
-                    // Success
-                    successMessage.classList.remove('hidden');
-                    verifyBtn.disabled = true;
+                // Create image elements
+                shuffledImages.forEach((imgUrl, index) => {
+                    const container = document.createElement('div');
+                    container.className = 'image-container bg-gray-100 rounded-lg overflow-hidden cursor-pointer relative';
                     
-                    // Disable all images
-                    images.forEach(imgElement => {
-                        imgElement.style.pointerEvents = 'none';
+                    const img = document.createElement('img');
+                    img.src = imgUrl + '?w=300&h=300&fit=crop&crop=entropy&auto=format';
+                    img.className = 'w-full h-full object-cover transition duration-200';
+                    img.alt = 'Captcha image';
+                    
+                    // Apply rotation to incorrect images
+                    if (index !== correctImageIndex) {
+                        const rotations = ['rotate-90', 'rotate-180', 'rotate-270'];
+                        const rotation = rotations[Math.floor(Math.random() * rotations.length)];
+                        img.classList.add(rotation);
+                    }
+                    
+                    // Add checkmark overlay (hidden by default)
+                    const checkmark = document.createElement('div');
+                    checkmark.className = 'absolute top-2 right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center hidden';
+                    checkmark.innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
+                    
+                    container.appendChild(img);
+                    container.appendChild(checkmark);
+                    
+                    container.addEventListener('click', function() {
+                        selectImage(index, container);
                     });
                     
-                    // Navigate to final stage after a delay
-                    setTimeout(goToFinalStage, 1500);
-                } else {
-                    // Failure
-                    errorMessage.classList.remove('hidden');
+                    imageGrid.appendChild(container);
+                });
+            }
+
+            function selectImage(index, container) {
+                // Deselect previous selection
+                if (selectedImageIndex !== -1) {
+                    const prevContainer = imageGrid.children[selectedImageIndex];
+                    prevContainer.classList.remove('selected');
+                    prevContainer.querySelector('div').classList.add('hidden');
+                }
+                
+                // Select new image
+                selectedImageIndex = index;
+                container.classList.add('selected');
+                container.querySelector('div').classList.remove('hidden');
+                
+                // Enable verify button
+                verifyBtn.disabled = false;
+            }
+
+            function verifySelection() {
+                attempts++;
+                const selectedContainer = imageGrid.children[selectedImageIndex];
+                
+                if (selectedImageIndex === correctImageIndex) {
+                    // Correct selection
+                    selectedContainer.classList.add('correct');
+                    feedbackDiv.className = 'bg-green-100 text-green-800 mb-4 p-4 rounded-lg';
+                    feedbackDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Verification successful! You can proceed.';
+                    feedbackDiv.classList.remove('hidden');
                     
-                    // After 3 failed attempts, refresh the captcha
+                    // Disable further clicks
+                    Array.from(imageGrid.children).forEach(container => {
+                        container.style.pointerEvents = 'none';
+                    });
+                    
+                    // Disable buttons
+                    verifyBtn.disabled = true;
+                    refreshBtn.disabled = true;
+                    
+                    // Stop timer
+                    clearInterval(timer);
+                    
+                    // Show confetti
+                    createConfetti();
+                } else {
+                    // Incorrect selection
+                    selectedContainer.classList.add('incorrect', 'shake');
+                    feedbackDiv.className = 'bg-red-100 text-red-800 mb-4 p-4 rounded-lg';
+                    feedbackDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> That image isn\'t the right way up. Try again.';
+                    feedbackDiv.classList.remove('hidden');
+                    
+                    // Remove shake animation after it completes
+                    setTimeout(() => {
+                        selectedContainer.classList.remove('shake');
+                    }, 500);
+                    
+                    // Reset selection
+                    setTimeout(() => {
+                        selectedContainer.classList.remove('selected', 'incorrect');
+                        selectedContainer.querySelector('div').classList.add('hidden');
+                        selectedImageIndex = -1;
+                    }, 1000);
+                    
+                    // After 3 failed attempts, reset the captcha
                     if (attempts >= 3) {
-                        setTimeout(initCaptcha, 2000);
+                        feedbackDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Multiple incorrect attempts. New images loaded.';
+                        setTimeout(() => {
+                            resetCaptcha();
+                        }, 1500);
                     }
                 }
             }
-            
-            // Helper function to shuffle an array
-            function shuffleArray(array) {
-                const newArray = [...array];
-                for (let i = newArray.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-                }
-                return newArray;
-            }
-            
-            // Event listeners for captcha
-            verifyBtn.addEventListener('click', verifyCaptcha);
-            refreshBtn.addEventListener('click', initCaptcha);
-            skipBtn.addEventListener('click', initCaptcha);
-            
-            // Event listener for restart button
-            restartBtn.addEventListener('click', function() {
-                // Reset all inputs
-                emailInput.value = '';
-                passwordInput.value = '';
-                mfaDigits.forEach(digit => digit.value = '');
-                mfaCode = ['', '', '', ''];
-                
-                // Hide all stages except login
-                finalStage.classList.add('hidden');
-                finalStage.classList.remove('fade-in');
-                captchaStage.classList.add('hidden');
-                captchaStage.classList.remove('fade-in');
-                mfaStage.classList.add('hidden');
-                mfaStage.classList.remove('fade-in');
-                
-                // Show login stage
-                loginStage.classList.remove('hidden');
-                loginStage.classList.add('fade-in');
-                
-                // Reset captcha attempts
+
+            function resetCaptcha() {
                 attempts = 0;
-            });
+                initCaptcha();
+            }
+
+            function startTimer() {
+                timer = setInterval(() => {
+                    timeLeft--;
+                    timerElement.textContent = timeLeft;
+                    
+                    if (timeLeft <= 10) {
+                        timerElement.classList.add('text-red-500');
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        feedbackDiv.className = 'bg-red-100 text-red-800 mb-4 p-4 rounded-lg';
+                        feedbackDiv.innerHTML = '<i class="fas fa-clock mr-2"></i> Time expired. New images loaded.';
+                        feedbackDiv.classList.remove('hidden');
+                        resetCaptcha();
+                    }
+                }, 1000);
+            }
+
+            function createConfetti() {
+                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = -10 + 'px';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    
+                    confettiContainer.appendChild(confetti);
+                    
+                    const animationDuration = Math.random() * 3 + 2;
+                    
+                    setTimeout(() => {
+                        confetti.style.transition = `top ${animationDuration}s linear, opacity ${animationDuration}s linear`;
+                        confetti.style.top = '100vh';
+                        confetti.style.opacity = '0.5';
+                        
+                        setTimeout(() => {
+                            confetti.remove();
+                        }, animationDuration * 1000);
+                    }, Math.random() * 500);
+                }
+            }
         });
     </script>
 </body>
