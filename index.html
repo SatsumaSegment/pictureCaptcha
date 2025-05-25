@@ -3,38 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orientation Captcha Puzzle</title>
+    <title>Secure Access Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .image-container {
-            perspective: 1000px;
-            transition: all 0.3s ease;
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%);
         }
-        .image-container:hover {
-            transform: scale(1.03);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .image-container.selected {
-            border: 3px solid #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-        .image-container.correct {
-            border: 3px solid #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
-        }
-        .image-container.incorrect {
-            border: 3px solid #ef4444;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
-        }
-        .rotate-90 {
-            transform: rotate(90deg);
-        }
-        .rotate-180 {
-            transform: rotate(180deg);
-        }
-        .rotate-270 {
-            transform: rotate(270deg);
+        .card-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .shake {
             animation: shake 0.5s;
@@ -44,260 +23,309 @@
             10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
             20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            opacity: 0;
+        .captcha-image {
+            transition: all 0.3s ease;
+        }
+        .captcha-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .captcha-image.selected {
+            border: 3px solid #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Verify you're human</h1>
-            <p class="text-gray-600">Click on the image that's the right way up</p>
-            <div class="flex items-center justify-center mt-4">
-                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
-                    <i class="fas fa-shield-alt text-blue-500"></i>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <!-- Login Screen -->
+    <div id="login-screen" class="card-glass rounded-xl shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+            <i class="fas fa-lock text-4xl text-white mb-4"></i>
+            <h1 class="text-3xl font-bold text-white">Secure Access</h1>
+            <p class="text-white opacity-80 mt-2">Please enter your credentials</p>
+        </div>
+        
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="username" class="block text-sm font-medium text-white mb-1">Username</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user text-gray-300"></i>
+                    </div>
+                    <input type="text" id="username" name="username" required 
+                           class="pl-10 w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
                 </div>
-                <span class="text-sm text-gray-500">Security check by CaptchaPuzzle</span>
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-medium text-white mb-1">Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-key text-gray-300"></i>
+                    </div>
+                    <input type="password" id="password" name="password" required 
+                           class="pl-10 w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="remember-me" class="ml-2 block text-sm text-white">Remember me</label>
+                </div>
+                
+                <div class="text-sm">
+                    <a href="#" class="font-medium text-blue-200 hover:text-blue-100">Forgot password?</a>
+                </div>
+            </div>
+            
+            <div>
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300">
+                    Sign in
+                </button>
+            </div>
+        </form>
+        
+        <div id="login-error" class="mt-4 hidden">
+            <div class="bg-red-500 text-white px-4 py-3 rounded-lg flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>Invalid username or password</span>
             </div>
         </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6" id="imageGrid">
-            <!-- Images will be inserted here by JavaScript -->
+    </div>
+    
+    <!-- CAPTCHA Screen -->
+    <div id="captcha-screen" class="card-glass rounded-xl shadow-2xl p-8 w-full max-w-md hidden">
+        <div class="text-center mb-6">
+            <i class="fas fa-robot text-4xl text-white mb-4"></i>
+            <h1 class="text-2xl font-bold text-white">Verify You're Human</h1>
+            <p class="text-white opacity-80 mt-2">Select all images containing <span id="captcha-prompt" class="font-bold text-blue-300">mountains</span></p>
         </div>
-
-        <div class="flex items-center justify-between mb-4">
-            <button id="refreshBtn" class="text-blue-500 hover:text-blue-700 flex items-center">
-                <i class="fas fa-sync-alt mr-2"></i> Refresh images
+        
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="false">
+                <img src="https://picsum.photos/id/10/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="true">
+                <img src="https://picsum.photos/id/6/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="false">
+                <img src="https://picsum.photos/id/14/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="true">
+                <img src="https://picsum.photos/id/8/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="false">
+                <img src="https://picsum.photos/id/20/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="false">
+                <img src="https://picsum.photos/id/24/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="true">
+                <img src="https://picsum.photos/id/5/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="false">
+                <img src="https://picsum.photos/id/30/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+            <div class="captcha-image aspect-square bg-gray-200 rounded-lg overflow-hidden cursor-pointer" data-correct="false">
+                <img src="https://picsum.photos/id/36/300/300" alt="CAPTCHA image" class="w-full h-full object-cover">
+            </div>
+        </div>
+        
+        <div class="flex justify-between items-center">
+            <button id="refresh-captcha" class="text-white hover:text-blue-200 transition-colors">
+                <i class="fas fa-sync-alt mr-1"></i> Refresh
             </button>
-            <div id="timer" class="text-sm text-gray-500">
-                <i class="fas fa-clock mr-1"></i> <span id="time">30</span>s
+            
+            <button id="verify-captcha" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Verify
+            </button>
+        </div>
+        
+        <div id="captcha-error" class="mt-4 hidden">
+            <div class="bg-red-500 text-white px-4 py-3 rounded-lg flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>Please select all correct images</span>
             </div>
         </div>
-
-        <div id="feedback" class="hidden mb-4 p-4 rounded-lg"></div>
-
-        <button id="verifyBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition duration-200 flex items-center justify-center">
-            <i class="fas fa-check-circle mr-2"></i> Verify
-        </button>
+    </div>
+    
+    <!-- Success Screen -->
+    <div id="success-screen" class="card-glass rounded-xl shadow-2xl p-8 w-full max-w-4xl hidden">
+        <div class="text-center mb-8">
+            <i class="fas fa-rocket text-4xl text-white mb-4"></i>
+            <h1 class="text-3xl font-bold text-white">Welcome to Space Explorer</h1>
+            <p class="text-white opacity-80 mt-2">Fascinating facts about our universe</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white bg-opacity-10 p-6 rounded-xl border border-white border-opacity-20">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-500 bg-opacity-20 p-3 rounded-full mr-4">
+                        <i class="fas fa-sun text-yellow-300 text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">Our Solar System</h2>
+                </div>
+                <p class="text-white opacity-90">
+                    Did you know that 99.86% of the mass of our solar system is contained in the Sun? 
+                    Jupiter accounts for about two-thirds of the remaining mass. The planets all orbit 
+                    the Sun in the same direction and in nearly the same plane.
+                </p>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 p-6 rounded-xl border border-white border-opacity-20">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-500 bg-opacity-20 p-3 rounded-full mr-4">
+                        <i class="fas fa-star text-blue-300 text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">The Milky Way</h2>
+                </div>
+                <p class="text-white opacity-90">
+                    Our Milky Way galaxy is approximately 100,000 light-years across and contains 
+                    between 100-400 billion stars. It takes our solar system about 230 million years 
+                    to complete one orbit around the galaxy's center.
+                </p>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 p-6 rounded-xl border border-white border-opacity-20">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-500 bg-opacity-20 p-3 rounded-full mr-4">
+                        <i class="fas fa-meteor text-orange-300 text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">Black Holes</h2>
+                </div>
+                <p class="text-white opacity-90">
+                    The supermassive black hole at the center of our galaxy, Sagittarius A*, has a mass 
+                    equivalent to about 4 million suns. Despite their reputation, black holes don't 
+                    "suck" matter in - objects must cross the event horizon to be trapped.
+                </p>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 p-6 rounded-xl border border-white border-opacity-20">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-500 bg-opacity-20 p-3 rounded-full mr-4">
+                        <i class="fas fa-satellite text-purple-300 text-xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">Exoplanets</h2>
+                </div>
+                <p class="text-white opacity-90">
+                    As of 2023, astronomers have confirmed over 5,000 exoplanets (planets orbiting 
+                    other stars). Some of these are potentially habitable "Earth-like" planets in 
+                    their star's Goldilocks zone where liquid water could exist.
+                </p>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <button id="logout-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </div>
     </div>
 
-    <div id="confettiContainer" class="fixed top-0 left-0 w-full h-full pointer-events-none"></div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Sample image URLs (in a real app, these would be fetched from a server)
-            const imageUrls = [
-                'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-                'https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5',
-                'https://images.unsplash.com/photo-1433086966358-54859d0ed716',
-                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05',
-                'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d',
-                'https://images.unsplash.com/photo-1472214103451-9374bd1c798e'
-            ];
-
-            const imageGrid = document.getElementById('imageGrid');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const verifyBtn = document.getElementById('verifyBtn');
-            const feedbackDiv = document.getElementById('feedback');
-            const timerElement = document.getElementById('time');
-            const confettiContainer = document.getElementById('confettiContainer');
-
-            let selectedImageIndex = -1;
-            let correctImageIndex = -1;
-            let timeLeft = 30;
-            let timer;
-            let attempts = 0;
-
-            // Initialize the captcha
-            initCaptcha();
-
-            // Refresh button click handler
-            refreshBtn.addEventListener('click', function() {
-                resetCaptcha();
+        // Login functionality
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const loginScreen = document.getElementById('login-screen');
+        const captchaScreen = document.getElementById('captcha-screen');
+        const successScreen = document.getElementById('success-screen');
+        
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Correct credentials
+            const correctUsername = 'testlogin1';
+            const correctPassword = 'testpassword2';
+            
+            if (username === correctUsername && password === correctPassword) {
+                // Successful login
+                loginScreen.classList.add('hidden');
+                captchaScreen.classList.remove('hidden');
+                loginError.classList.add('hidden');
+            } else {
+                // Failed login
+                loginError.classList.remove('hidden');
+                loginForm.classList.add('shake');
+                setTimeout(() => {
+                    loginForm.classList.remove('shake');
+                }, 500);
+            }
+        });
+        
+        // CAPTCHA functionality
+        const captchaImages = document.querySelectorAll('.captcha-image');
+        const verifyCaptchaBtn = document.getElementById('verify-captcha');
+        const refreshCaptchaBtn = document.getElementById('refresh-captcha');
+        const captchaError = document.getElementById('captcha-error');
+        
+        captchaImages.forEach(image => {
+            image.addEventListener('click', function() {
+                this.classList.toggle('selected');
             });
-
-            // Verify button click handler
-            verifyBtn.addEventListener('click', function() {
-                verifySelection();
+        });
+        
+        verifyCaptchaBtn.addEventListener('click', function() {
+            const selectedImages = document.querySelectorAll('.captcha-image.selected');
+            let allCorrect = true;
+            
+            // Check if all selected images are correct and all correct images are selected
+            selectedImages.forEach(img => {
+                if (img.dataset.correct === 'false') {
+                    allCorrect = false;
+                }
             });
-
-            function initCaptcha() {
-                // Clear previous images
-                imageGrid.innerHTML = '';
-                selectedImageIndex = -1;
-                feedbackDiv.classList.add('hidden');
-                
-                // Reset timer
-                clearInterval(timer);
-                timeLeft = 30;
-                timerElement.textContent = timeLeft;
-                startTimer();
-
-                // Shuffle images and select 4 random ones
-                const shuffledImages = [...imageUrls].sort(() => 0.5 - Math.random()).slice(0, 4);
-                
-                // Determine which image will be correct (right side up)
-                correctImageIndex = Math.floor(Math.random() * 4);
-                
-                // Create image elements
-                shuffledImages.forEach((imgUrl, index) => {
-                    const container = document.createElement('div');
-                    container.className = 'image-container bg-gray-100 rounded-lg overflow-hidden cursor-pointer relative';
-                    
-                    const img = document.createElement('img');
-                    img.src = imgUrl + '?w=300&h=300&fit=crop&crop=entropy&auto=format';
-                    img.className = 'w-full h-full object-cover transition duration-200';
-                    img.alt = 'Captcha image';
-                    
-                    // Apply rotation to incorrect images
-                    if (index !== correctImageIndex) {
-                        const rotations = ['rotate-90', 'rotate-180', 'rotate-270'];
-                        const rotation = rotations[Math.floor(Math.random() * rotations.length)];
-                        img.classList.add(rotation);
-                    }
-                    
-                    // Add checkmark overlay (hidden by default)
-                    const checkmark = document.createElement('div');
-                    checkmark.className = 'absolute top-2 right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center hidden';
-                    checkmark.innerHTML = '<i class="fas fa-check text-green-500 text-sm"></i>';
-                    
-                    container.appendChild(img);
-                    container.appendChild(checkmark);
-                    
-                    container.addEventListener('click', function() {
-                        selectImage(index, container);
-                    });
-                    
-                    imageGrid.appendChild(container);
-                });
-            }
-
-            function selectImage(index, container) {
-                // Deselect previous selection
-                if (selectedImageIndex !== -1) {
-                    const prevContainer = imageGrid.children[selectedImageIndex];
-                    prevContainer.classList.remove('selected');
-                    prevContainer.querySelector('div').classList.add('hidden');
+            
+            // Also check if all correct images are selected
+            const correctImages = document.querySelectorAll('.captcha-image[data-correct="true"]');
+            correctImages.forEach(img => {
+                if (!img.classList.contains('selected')) {
+                    allCorrect = false;
                 }
-                
-                // Select new image
-                selectedImageIndex = index;
-                container.classList.add('selected');
-                container.querySelector('div').classList.remove('hidden');
-                
-                // Enable verify button
-                verifyBtn.disabled = false;
+            });
+            
+            if (allCorrect && selectedImages.length > 0) {
+                // CAPTCHA passed
+                captchaScreen.classList.add('hidden');
+                successScreen.classList.remove('hidden');
+                captchaError.classList.add('hidden');
+            } else {
+                // CAPTCHA failed
+                captchaError.classList.remove('hidden');
+                captchaScreen.classList.add('shake');
+                setTimeout(() => {
+                    captchaScreen.classList.remove('shake');
+                }, 500);
             }
-
-            function verifySelection() {
-                attempts++;
-                const selectedContainer = imageGrid.children[selectedImageIndex];
-                
-                if (selectedImageIndex === correctImageIndex) {
-                    // Correct selection
-                    selectedContainer.classList.add('correct');
-                    feedbackDiv.className = 'bg-green-100 text-green-800 mb-4 p-4 rounded-lg';
-                    feedbackDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Verification successful! You can proceed.';
-                    feedbackDiv.classList.remove('hidden');
-                    
-                    // Disable further clicks
-                    Array.from(imageGrid.children).forEach(container => {
-                        container.style.pointerEvents = 'none';
-                    });
-                    
-                    // Disable buttons
-                    verifyBtn.disabled = true;
-                    refreshBtn.disabled = true;
-                    
-                    // Stop timer
-                    clearInterval(timer);
-                    
-                    // Show confetti
-                    createConfetti();
-                } else {
-                    // Incorrect selection
-                    selectedContainer.classList.add('incorrect', 'shake');
-                    feedbackDiv.className = 'bg-red-100 text-red-800 mb-4 p-4 rounded-lg';
-                    feedbackDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> That image isn\'t the right way up. Try again.';
-                    feedbackDiv.classList.remove('hidden');
-                    
-                    // Remove shake animation after it completes
-                    setTimeout(() => {
-                        selectedContainer.classList.remove('shake');
-                    }, 500);
-                    
-                    // Reset selection
-                    setTimeout(() => {
-                        selectedContainer.classList.remove('selected', 'incorrect');
-                        selectedContainer.querySelector('div').classList.add('hidden');
-                        selectedImageIndex = -1;
-                    }, 1000);
-                    
-                    // After 3 failed attempts, reset the captcha
-                    if (attempts >= 3) {
-                        feedbackDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Multiple incorrect attempts. New images loaded.';
-                        setTimeout(() => {
-                            resetCaptcha();
-                        }, 1500);
-                    }
-                }
-            }
-
-            function resetCaptcha() {
-                attempts = 0;
-                initCaptcha();
-            }
-
-            function startTimer() {
-                timer = setInterval(() => {
-                    timeLeft--;
-                    timerElement.textContent = timeLeft;
-                    
-                    if (timeLeft <= 10) {
-                        timerElement.classList.add('text-red-500');
-                    }
-                    
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        feedbackDiv.className = 'bg-red-100 text-red-800 mb-4 p-4 rounded-lg';
-                        feedbackDiv.innerHTML = '<i class="fas fa-clock mr-2"></i> Time expired. New images loaded.';
-                        feedbackDiv.classList.remove('hidden');
-                        resetCaptcha();
-                    }
-                }, 1000);
-            }
-
-            function createConfetti() {
-                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                
-                for (let i = 0; i < 100; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.top = -10 + 'px';
-                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                    
-                    confettiContainer.appendChild(confetti);
-                    
-                    const animationDuration = Math.random() * 3 + 2;
-                    
-                    setTimeout(() => {
-                        confetti.style.transition = `top ${animationDuration}s linear, opacity ${animationDuration}s linear`;
-                        confetti.style.top = '100vh';
-                        confetti.style.opacity = '0.5';
-                        
-                        setTimeout(() => {
-                            confetti.remove();
-                        }, animationDuration * 1000);
-                    }, Math.random() * 500);
-                }
-            }
+        });
+        
+        refreshCaptchaBtn.addEventListener('click', function() {
+            // In a real app, this would fetch new CAPTCHA images
+            // For this demo, we'll just reset the current ones
+            captchaImages.forEach(image => {
+                image.classList.remove('selected');
+                // Change the image URL to force refresh (using unsplash random)
+                const img = image.querySelector('img');
+                const currentSrc = img.src;
+                // Add a random parameter to force refresh
+                img.src = currentSrc.split('?')[0] + '?random=' + Math.floor(Math.random() * 1000);
+            });
+            captchaError.classList.add('hidden');
+        });
+        
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            successScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            // Reset form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('remember-me').checked = false;
+            // Reset CAPTCHA
+            captchaImages.forEach(image => image.classList.remove('selected'));
         });
     </script>
 </body>
